@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" ng-app>
   <head>
-    <title>Chat Example</title>
+    <title>Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/bootstrap-responsive.min.css">
@@ -16,14 +16,35 @@ margin-left: 10%;
 margin-right: 70%;
 margin-top: 70px; 
 padding-top: 10px; 
-width: 20%; 
-height: 170px; 
+width: 60%; 
+height: 300px; 
 position: absolute; 
-background: #FFFFFF; 
+background: #DCDCDC; 
 border: solid #909090 2px; 
 z-index: 9; 
 font-family: arial; 
 visibility: hidden; 
+}
+form {
+                width:500px;
+                margin:50px auto;
+}
+ search {
+                padding:8px 15px;
+                background:rgba(50, 50, 50, 0.2);
+                border:0px solid #dbdbdb;
+}
+ button {
+                position:relative;
+                padding:6px 15px;
+                left:-8px;
+                border:2px solid #207cca;
+                background-color:#207cca;
+                color:#fafafa;
+}
+ button:hover  {
+                background-color:#fafafa;
+                color:#207cca;
 }
 </style>
 <script language="JavaScript" type="text/javascript">
@@ -42,9 +63,12 @@ if(showhide == "show"){
         //var socket = io.connect();
 
         $scope.messages = [];
+        $scope.results = [];
         $scope.roster = [];
         $scope.name = '';
         $scope.text = '';
+        $scope.searchterm = '';
+  
 
         socket.on('connect', function () {
           console.log('connected');
@@ -63,10 +87,22 @@ if(showhide == "show"){
           $scope.$apply();
         });
 
+        socket.on('search', function (srch) {
+          console.log(srch)
+          $scope.search.push(srch);
+          $scope.$apply();
+        });
+
         $scope.send = function send() {
           console.log('Sending message:', $scope.text);
           socket.emit('message', $scope.text);
           $scope.text = '';
+        };
+        
+       $scope.search = function search() { //THIS FUNCTION BREAKS OUR MESSAGE FUNCTION
+          console.log('Sending searchterm:', $scope.searchterm);
+          socket.emit('search', $scope.searchterm);
+          $scope.searchterm = '';
         };
 
         $scope.setName = function setName() {
@@ -88,6 +124,7 @@ if(showhide == "show"){
 
 
       }
+      
     </script>
   </head>
   <body onload="javascript:login('show')">
@@ -101,17 +138,22 @@ if(showhide == "show"){
     <div class="container" ng-controller="ChatController">
       
       
-          <div id="popupbox"> 
+          <div id="popupbox"  > 
 <form ng-submit="processLogin()">
+
+<center><h1>Login First</h1></center>
 <center>Username:</center>
-<center><input type="text"  ng-model="name2" ng-change="setName2()" placeholder="Username" size="14" /></center>
+<center><input type="text"  ng-model="name2" ng-change="setName2()" placeholder="Username" size="10"/></center>
 <center>Password:</center>
-<center><input  ng-model="password" type="password" size="14" /></center>
+<center><input  ng-model="password" type="password" placeholder= "Your Password" size="14" /></center>
 <center><input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!password"></center>
+<center><p>Or you can sign Up from the link below</p></center>
+<center><li><a href="/signup">SignUp</a></li></center>
+
 
 </form>
-<br />
 
+<br />
 </div> 
 
       
@@ -141,6 +183,7 @@ if(showhide == "show"){
           </ul>
           
         </div>
+       
         <div class="span9">
           <table class="table table-striped table-bordered">
             <thead>
@@ -156,6 +199,12 @@ if(showhide == "show"){
               </tr>
             </tbody>
           </table>
+              <tbody>
+              <tr ng-repeat="s in results">
+                <td class="span2" ng-bind="s.name"></td>
+                <td class="span7" ng-bind="s.text"></td>
+              </tr>
+            </tbody>
           <div class="row controls">
             <form ng-submit="send()">
               <div class="span2" ><input type="text" class="input-block-level" ng-model="name" readonly="readonly" placeholder="Your Name"></div>
@@ -163,7 +212,16 @@ if(showhide == "show"){
                 <input type="text" class="span6" ng-model="text" placeholder="Message">
                 <input type="submit" class="span1 btn btn-primary" value="Send" ng-disabled="!text">
               </div>
-            </form>
+            </form> 
+          <form ng-submit="search()">
+                               <!--<input type="text" placeholder="Search term" required>
+                                <input type="button" value="Search" ng-disabled="!searchterm"> -->
+            <input type="text" class="span6" ng-model="searchterm" placeholder="Search term">
+            <input type="submit" class="span1 btn btn-primary" value="Search" ng-disabled="!searchterm">
+                                
+          </form>
+              
+            
           </div>
         </div>
       </div>
@@ -172,5 +230,8 @@ if(showhide == "show"){
     <script src="/js/jquery.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
     <script src="/js/angular.min.js"></script>
+
+      
+
   </body>
 </html>
