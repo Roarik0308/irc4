@@ -55,27 +55,21 @@ def test_connect():
         emit('message', message)
 
 @socketio.on('search', namespace='/chat')
-#@app.route('/',methods=['GET', 'POST'])
-def search(searchterm): #had to comment this function because it breaks our new message function 
-    #print searchIn
-    print searchterm
+def search(searchterm): 
+    print searchterm 
+    searchterm = '%' + searchterm + '%'
+    print searchterm 
     conn = connectToDB()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    # i think this query will work 
-    # cur.execute("SELECT * from messages where message like %%s%)",(searchterm))
-    # results = cur.fetchall()
-    
-    #ok this for loop should send the results to our html file to be displayed
-    #for result in results:
-        #result = {'text':result['message'], 'name':result['username']}
-        #emit('search',result)
-    print "search is called"
-    #search = request.form['Search']
-    #this will be needed to send the results from the query to the html
-    #emit('search', search)
-   # tmip = {'text':searchterm, 'name':users[session['uuid']]['username']}
-    search = searchIn 
-    #print tmip
+    queryold = "SELECT message, username FROM messages WHERE message LIKE %s"
+    #query = "SELECT message, username FROM %s WHERE message LIKE %s" % (currentChatRoom,'%s')
+    print cur.mogrify(queryold, (searchterm,)) 
+    cur.execute(queryold,(searchterm,))
+    results = cur.fetchall()
+    print results
+    res = ['user','Text']
+    for r in results:
+        emit('search', dict(zip(res,r)))
     
 @socketio.on('message', namespace='/chat')
 #@app.route('/chat',methods=['GET', 'POST'])
